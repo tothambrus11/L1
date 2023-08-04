@@ -48,7 +48,7 @@ namespace AST {
 
 
     template<NodeType nodeType_>
-    struct NodeBase : Node {
+    struct NodeBase : public Node {
         static constexpr NodeType NODE_TYPE = nodeType_;
 
         NodeBase() : Node(nodeType_) {}
