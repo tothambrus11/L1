@@ -119,7 +119,103 @@ TEST_P(ReductionTest, BinaryOpWithManyDepths) {
     ASSERT_THAT(node->as<AST::NumberNode>()->value, Eq(15));
 }
 
+TEST_P(ReductionTest, SubtractNodeSimple){
+    AST::Node::Ptr node = AST::Subtract(
+            AST::Number(1),
+            AST::Number(2)
+    );
+
+    reducer->reduce(node);
+
+    ASSERT_THAT(node->nodeType, Eq(AST::NodeType::NUMBER_LITERAL));
+    ASSERT_THAT(node->as<AST::NumberNode>()->value, Eq(-1));
+}
+
+TEST_P(ReductionTest, SubtractNodeLeftComplex){
+    AST::Node::Ptr node = AST::Subtract(
+            AST::Subtract(
+                    AST::Number(1),
+                    AST::Number(2)
+            ),
+            AST::Number(3)
+    );
+
+    reducer->reduce(node);
+
+    ASSERT_THAT(node->nodeType, Eq(AST::NodeType::NUMBER_LITERAL));
+    ASSERT_THAT(node->as<AST::NumberNode>()->value, Eq(-4));
+}
+
+TEST_P(ReductionTest, SubtractNodeRightComplex){
+    AST::Node::Ptr node = AST::Subtract(
+            AST::Number(3),
+            AST::Subtract(
+                    AST::Number(1),
+                    AST::Number(2)
+            )
+    );
+
+    reducer->reduce(node);
+
+    ASSERT_THAT(node->nodeType, Eq(AST::NodeType::NUMBER_LITERAL));
+    ASSERT_THAT(node->as<AST::NumberNode>()->value, Eq(4));
+}
+
+TEST_P(ReductionTest, SubtractNodeBothComplex){
+    AST::Node::Ptr node = AST::Subtract(
+            AST::Subtract(
+                    AST::Number(1),
+                    AST::Number(2)
+            ),
+            AST::Subtract(
+                    AST::Number(3),
+                    AST::Number(4)
+            )
+    );
+
+    reducer->reduce(node);
+
+    ASSERT_THAT(node->nodeType, Eq(AST::NodeType::NUMBER_LITERAL));
+    ASSERT_THAT(node->as<AST::NumberNode>()->value, Eq(0));
+}
+
+TEST_P(ReductionTest, IfSubtractAndAddNodesTogether){
+    AST::Node::Ptr node = AST::If(
+            AST::LessThan(
+                    AST::Add(AST::Number(1), AST::Number(2)),
+                    AST::Number(2)
+            ),
+            AST::Subtract(
+                    AST::Number(1),
+                    AST::Number(2)
+            ),
+            AST::Add(
+                    AST::Number(1),
+                    AST::Number(2)
+            )
+    );
+
+    reducer->reduce(node);
+
+    ASSERT_THAT(node->nodeType, Eq(AST::NodeType::NUMBER_LITERAL));
+    ASSERT_THAT(node->as<AST::NumberNode>()->value, Eq(3));
+}
+
+
 INSTANTIATE_TEST_SUITE_P(ReductionTests, ReductionTest, Values(
         std::make_shared<DumbReducerService>(),
         std::make_shared<SmartReducerService>()
 ));
+
+
+
+
+
+
+
+
+
+
+
+
+
